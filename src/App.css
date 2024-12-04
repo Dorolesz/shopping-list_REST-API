@@ -19,13 +19,11 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
+h1, .remaining-items, .to-be-purchased-items, .success, .error {
   text-align: center;
-  color: #ffb1ff;
+  color: #ad49ff;
 }
 
-h1, .remaining-items, .to-be-purchased-items, .success, .error { color: black;
-}
 
 .input-container {
   display: flex;
