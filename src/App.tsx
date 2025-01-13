@@ -15,20 +15,28 @@ const ShoppingListApp: React.FC = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [error, setError] = useState<string>('');
-
+  
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch('https://retoolapi.dev/Wts2Ir/bevasarlolista');
+        const response = await fetch('https://retoolapi.dev/1AFf5s/data');
         const data = await response.json();
-        setItems(data);
+        const mappedData = data.map((item: any) => ({
+          id: item.id.toString(),
+          name: item.Termék,
+          quantity: item.Mennyiség,
+          unit: item['Mennyiségi egység'],
+          purchased: false,
+        }));
+        setItems(mappedData);
       } catch (error) {
         console.error('Error fetching items:', error);
       }
     };
-
+  
     fetchItems();
   }, []);
+
 
   const addItem = () => {
     if (!itemName.trim() || !quantity || !unit) {
