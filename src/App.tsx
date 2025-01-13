@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 interface ShoppingItem {
@@ -15,6 +15,20 @@ const ShoppingListApp: React.FC = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await fetch('https://retoolapi.dev/Wts2Ir/bevasarlolista');
+        const data = await response.json();
+        setItems(data);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   const addItem = () => {
     if (!itemName.trim() || !quantity || !unit) {
