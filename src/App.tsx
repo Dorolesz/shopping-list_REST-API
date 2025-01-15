@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 
 interface ShoppingItem {
-  id: string;
+  id: number;
   name: string;
   quantity: number;
   unit: string;
@@ -15,30 +15,31 @@ const ShoppingListApp: React.FC = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [error, setError] = useState<string>('');
-  
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await fetch('https://retoolapi.dev/1AFf5s/data');
         const data = await response.json();
+        
         const mappedData = data.map((item: any) => ({
-          id: item.id.toString(),
+          id: item.id,
           name: item.Termék,
           quantity: item.Mennyiség,
           unit: item['Mennyiségi egység'],
           purchased: false,
         }));
+
         setItems(mappedData);
       } catch (error) {
         console.error('Error fetching items:', error);
       }
     };
-  
+
     fetchItems();
   }, []);
 
-
-  const addItem = () => {
+  const addItem = async () => {
     if (!itemName.trim() || !quantity || !unit) {
       setError('Minden mező kitöltése kötelező!');
       return;
@@ -54,22 +55,42 @@ const ShoppingListApp: React.FC = () => {
       return;
     }
 
+    const maxId = Math.max(...items.map((item) => item.id));
+    const newItemId = maxId + 1;
+
     const newItem: ShoppingItem = {
-      id: Date.now().toString(),
+      id: newItemId,
       name: itemName.trim(),
       quantity: parseFloat(quantity),
       unit: unit.trim(),
       purchased: false,
     };
 
-    setItems([...items, newItem]);
-    setItemName('');
-    setQuantity('');
-    setUnit('');
-    setError('');
+    try {
+      await fetch('https://retoolapi.dev/1AFf5s/data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: newItem.id,
+          Termék: newItem.name,
+          Mennyiség: newItem.quantity,
+          'Mennyiségi egység': newItem.unit,
+        }),
+      });
+      setItems([...items, newItem]);
+      setItemName('');
+      setQuantity('');
+      setUnit('');
+      setError('');
+    } catch (error) {
+      setError('Hiba történt az új tétel hozzáadása közben!');
+      console.error('Error adding item:', error);
+    }
   };
 
-  const togglePurchased = (id: string) => {
+  const togglePurchased = (id: number) => {
     setItems(
       items.map((item) =>
         item.id === id ? { ...item, purchased: !item.purchased } : item
@@ -77,8 +98,16 @@ const ShoppingListApp: React.FC = () => {
     );
   };
 
-  const deleteItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id));
+  const deleteItem = async (id: number) => {
+    try {
+      await fetch(`https://retoolapi.dev/1AFf5s/data/${id}`, {
+        method: 'DELETE',
+      });
+      setItems(items.filter((item) => item.id !== id));
+    } catch (error) {
+      setError('Hiba történt a tétel törlése közben!');
+      console.error('Error deleting item:', error);
+    }
   };
 
   const allItemsPurchased = items.length > 0 && items.every((item) => item.purchased);
@@ -87,7 +116,6 @@ const ShoppingListApp: React.FC = () => {
   return (
     <div className="app">
       <h1>Bevásárló lista</h1>
-
       {error && <p className="error">{error}</p>}
 
       <div className="input-container">
@@ -135,7 +163,7 @@ const ShoppingListApp: React.FC = () => {
   );
 }
 
-function App() {
+const App: React.FC = () => {
   return (
     <div className="App">
       <ShoppingListApp />
